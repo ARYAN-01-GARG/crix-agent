@@ -18,11 +18,30 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  packages/events:
+    dependencies:
+      '@crix/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^25.9.3
+        version: 25.9.3
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   packages/shared:
     devDependencies:
       '@types/node':
         specifier: ^25.9.3
         version: 25.9.3
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
+  packages/themes:
+    devDependencies:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
