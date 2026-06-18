@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "types": ["node"]
+  },
+  "references": [
+    { "path": "../shared" },
+    { "path": "../events" },
+    { "path": "../context" },
+    { "path": "../core" },
+    { "path": "../harness" },
+    { "path": "../agents" }
+  ],
+  "include": ["src/**/*"]
+}
