@@ -1,0 +1,34 @@
+{
+  "name": "@crix/harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tool execution layer — file I/O, shell, git, permissions, and hooks",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crix/core": "workspace:*",
+    "@crix/events": "workspace:*",
+    "@crix/shared": "workspace:*",
+    "execa": "^9.5.2",
+    "fast-glob": "^3.3.3",
+    "simple-git": "^3.27.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "^5.7.3"
+  }
+}
