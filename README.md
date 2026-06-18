@@ -4,7 +4,7 @@ An enterprise-grade **terminal UI** coding agent — runs in your terminal, rout
 
 ```
 ╭─ crix ──────────────────────────────────────────────────────────────╮
-│  ● work mode   ◆ backend   ⎇ develop   ~/projects/my-app            │
+│  ● work mode   ◆ backend   ⎇ develop   ~/projects/my-app           │
 ╰─────────────────────────────────────────────────────────────────────╯
 
   [orchestrator] task classified: medium → backend specialist
