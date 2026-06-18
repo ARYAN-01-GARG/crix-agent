@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "references": [
+    { "path": "../shared" },
+    { "path": "../themes" },
+    { "path": "../events" },
+    { "path": "../context" },
+    { "path": "../core" },
+    { "path": "../harness" },
+    { "path": "../orchestrator" }
+  ],
+  "include": ["src/**/*"]
+}
