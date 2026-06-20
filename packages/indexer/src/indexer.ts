@@ -97,8 +97,8 @@ export async function fullIndex(options: IndexerOptions): Promise<void> {
   done = total;
   onProgress?.(done, total);
 
-  const content = renderFullTree(renderInputs, limits.treeStructure);
-  writeTreeStructure(projectPath, content, limits);
+  const content = renderFullTree(renderInputs);
+  writeTreeStructure(projectPath, content);
 }
 
 /**
@@ -135,8 +135,8 @@ export async function incrementalIndex(
     if (section) updatedSections.set(relPath, section);
   }
 
-  const merged = mergeSectionsIntoTree(projectPath, updatedSections, limits);
-  writeTreeStructure(projectPath, merged, limits);
+  const merged = mergeSectionsIntoTree(projectPath, updatedSections);
+  writeTreeStructure(projectPath, merged);
 }
 
 function getSourceSnippet(filePath: string, lines = 60): string {

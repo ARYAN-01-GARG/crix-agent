@@ -102,8 +102,7 @@ export function getTreeSectionsForFiles(
  */
 export function mergeSectionsIntoTree(
   projectPath: string,
-  updatedSections: Map<string, string>,
-  limits: { treeStructure: number }
+  updatedSections: Map<string, string>
 ): string {
   const fullTree = readTreeStructure(projectPath);
   const sections = parseTreeSections(fullTree);
@@ -112,20 +111,12 @@ export function mergeSectionsIntoTree(
     sections.set(key, body);
   }
 
-  // Re-render in insertion order, sorted by file path
   const sorted = [...sections.entries()].sort(([a], [b]) => a.localeCompare(b));
   const header = fullTree.split("\n").slice(0, 3).join("\n");
 
   let result = header + "\n\n";
   for (const [, body] of sorted) {
     result += body + "\n\n";
-  }
-
-  // Trim to limit
-  if (result.length > limits.treeStructure) {
-    result = result.slice(0, limits.treeStructure);
-    const lastNewline = result.lastIndexOf("\n");
-    result = result.slice(0, lastNewline) + "\n\n... (truncated to fit limit)\n";
   }
 
   return result;
