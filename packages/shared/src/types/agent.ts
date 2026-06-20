@@ -1,10 +1,4 @@
-export type AgentRole =
-  | "backend"
-  | "frontend"
-  | "designer"
-  | "tester"
-  | "reviewer"
-  | "devops";
+export type AgentRole = "backend" | "frontend" | "designer" | "tester" | "reviewer" | "devops";
 
 export type TaskTier = "tiny" | "small" | "medium" | "large";
 
@@ -32,6 +26,9 @@ export interface AgentResult {
   taskId: string;
   role: AgentRole;
   success: boolean;
+  /** Full LLM response text (done block stripped) — shown to user in TUI */
+  response: string;
+  /** One-line summary extracted from done block — used for context.md */
   summary: string;
   filesChanged: string[];
   error?: string;
