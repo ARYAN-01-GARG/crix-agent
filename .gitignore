@@ -32,5 +32,5 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
-# crix — session files are local, knowledge files (.crix/*.md) are committed
-.crix/sessions/
+# crix — repo-level .crix/ is local only (not committed)
+.crix/
