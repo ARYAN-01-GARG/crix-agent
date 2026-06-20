@@ -1,6 +1,9 @@
 import type { AgentResult } from "@crix/shared";
 
 export interface MergedResult {
+  /** Full response shown to the user in the TUI */
+  response: string;
+  /** One-line summary for context.md */
   summary: string;
   filesChanged: string[];
   allSucceeded: boolean;
@@ -21,21 +24,30 @@ export function mergeResults(results: AgentResult[]): MergedResult {
     .map((r) => ({ role: r.role, error: r.error ?? "unknown error" }));
   const durationMs = Math.max(...results.map((r) => r.durationMs));
 
+  let response: string;
   let summary: string;
 
   if (results.length === 1) {
+    response = results[0]?.response ?? "";
     summary = results[0]?.summary ?? "";
   } else {
-    const sections = results
+    const responseSections = results
+      .filter((r) => r.success && r.response)
+      .map((r) => `**[${r.role}]**\n\n${r.response.trim()}`);
+
+    const summarySections = results
       .filter((r) => r.success && r.summary)
-      .map((r) => `**${r.role}**: ${r.summary.trim()}`);
+      .map((r) => `${r.role}: ${r.summary.trim()}`);
 
     if (errors.length > 0) {
-      sections.push(`**Errors**: ${errors.map((e) => `${e.role}: ${e.error}`).join("; ")}`);
+      const errText = `**Errors**: ${errors.map((e) => `${e.role}: ${e.error}`).join("; ")}`;
+      responseSections.push(errText);
+      summarySections.push(errText);
     }
 
-    summary = sections.join("\n\n");
+    response = responseSections.join("\n\n---\n\n");
+    summary = summarySections.join("; ");
   }
 
-  return { summary, filesChanged, allSucceeded, errors, durationMs };
+  return { response, summary, filesChanged, allSucceeded, errors, durationMs };
 }

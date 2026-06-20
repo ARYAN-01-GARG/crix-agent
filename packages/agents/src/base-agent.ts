@@ -73,6 +73,7 @@ export abstract class BaseAgent {
         taskId: task.id,
         role: this.role,
         success: true,
+        response: this.stripDoneBlock(text),
         summary: this.extractSummary(text),
         filesChanged,
         durationMs,
@@ -157,6 +158,10 @@ next_steps: <what the user should do next, or "none">
   private extractSummary(text: string): string {
     const match = /```done\s+summary:\s*(.+?)(?:\n|```)/s.exec(text);
     return (match?.[1] ?? text).trim();
+  }
+
+  private stripDoneBlock(text: string): string {
+    return text.replace(/```done[\s\S]*?```/g, "").trim();
   }
 
   private extractFilesChanged(

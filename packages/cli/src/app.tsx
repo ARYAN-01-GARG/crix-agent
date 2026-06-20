@@ -101,7 +101,7 @@ export function App({
 
       try {
         const result = await orchestrator.process(input, sessionId, mode);
-        addMessage({ role: "assistant", content: result.summary });
+        addMessage({ role: "assistant", content: result.response });
       } catch (err) {
         addMessage({
           role: "system",
