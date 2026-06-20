@@ -25,15 +25,18 @@ interface Props {
   mode: ModeStateMachine;
   sessionId: string;
   projectPath: string;
+  resumed?: boolean;
 }
 
-export function App({ config, orchestrator, mode, sessionId, projectPath }: Props): React.ReactElement {
+export function App({ config, orchestrator, mode, sessionId, projectPath, resumed }: Props): React.ReactElement {
   const { exit } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: generateId("msg"),
       role: "system",
-      content: `Welcome to crix. Mode: ${mode.get()} | Type /help for commands.`,
+      content: resumed
+        ? `Session resumed. Mode: ${mode.get()} | Type /help for commands.`
+        : `Welcome to crix. Mode: ${mode.get()} | Type /help for commands.`,
     },
   ]);
   const [isProcessing, setIsProcessing] = useState(false);

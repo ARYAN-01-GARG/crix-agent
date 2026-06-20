@@ -12,6 +12,7 @@
     { "path": "../themes" },
     { "path": "../events" },
     { "path": "../context" },
+    { "path": "../indexer" },
     { "path": "../core" },
     { "path": "../harness" },
     { "path": "../orchestrator" }

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@crix/context": "workspace:*",
+    "@crix/indexer": "workspace:*",
     "@crix/core": "workspace:*",
     "@crix/events": "workspace:*",
     "@crix/harness": "workspace:*",
