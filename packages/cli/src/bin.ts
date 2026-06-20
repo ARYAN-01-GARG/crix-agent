@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { program } from "commander";
+import { program, Command } from "commander";
 import { resolve } from "node:path";
 import { start } from "./index.js";
 import { cmdInit } from "./commands/init.js";
@@ -33,9 +33,11 @@ program
     });
   });
 
-// crix session list [path]
-program
-  .command("session list [path]")
+// crix session <subcommand>
+const session = new Command("session").description("manage saved sessions");
+
+session
+  .command("list [path]")
   .description("list saved sessions for a project")
   .action((path: string | undefined) => {
     cmdSessionList({ projectPath: path ? resolve(path) : process.cwd() }).catch((err) => {
@@ -44,16 +46,20 @@ program
     });
   });
 
-// crix session resume <id>
-program
-  .command("session resume <id>")
+session
+  .command("resume <id>")
   .description("resume a previous session by ID")
   .option("-p, --project <path>", "project path (defaults to cwd)")
   .action((id: string, opts: { project?: string }) => {
-    cmdSessionResume({ sessionId: id, projectPath: opts.project ? resolve(opts.project) : process.cwd() }).catch((err) => {
+    cmdSessionResume({
+      sessionId: id,
+      projectPath: opts.project ? resolve(opts.project) : process.cwd(),
+    }).catch((err) => {
       console.error(err);
       process.exit(1);
     });
   });
+
+program.addCommand(session);
 
 program.parse();
