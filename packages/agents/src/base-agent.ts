@@ -26,7 +26,6 @@ export abstract class BaseAgent {
         const oai = createOpenAI({ apiKey: this.config.apiKey });
         return oai(modelId);
       }
-      case "anthropic":
       default: {
         const anthropic = createAnthropic({ apiKey: this.config.apiKey });
         return anthropic(modelId);
@@ -80,7 +79,7 @@ export abstract class BaseAgent {
       };
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
-      const durationMs = Date.now() - start;
+      const _durationMs = Date.now() - start;
 
       this.emitter.emit({
         type: "agent:error",
@@ -109,9 +108,13 @@ export abstract class BaseAgent {
 You are in **${task.mode}** mode.`);
 
     if (task.mode === "plan") {
-      parts.push(" Do NOT write or modify any files. Only read, analyse, and propose changes in plain text.");
+      parts.push(
+        " Do NOT write or modify any files. Only read, analyse, and propose changes in plain text."
+      );
     } else if (task.mode === "review") {
-      parts.push(" Do NOT write or modify any files. You may run shell commands to execute tests. Produce review feedback only.");
+      parts.push(
+        " Do NOT write or modify any files. You may run shell commands to execute tests. Produce review feedback only."
+      );
     } else {
       parts.push(" You have full read + write + shell access via your tools.");
     }
@@ -156,13 +159,15 @@ next_steps: <what the user should do next, or "none">
     return (match?.[1] ?? text).trim();
   }
 
-  private extractFilesChanged(toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>): string[] {
+  private extractFilesChanged(
+    toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>
+  ): string[] {
     const paths = new Set<string>();
     const writeTools = new Set(["write_file", "create_file", "delete_file"]);
 
     for (const call of toolCalls) {
       if (writeTools.has(call.toolName)) {
-        const path = call.args["path"] ?? call.args["filePath"];
+        const path = call.args.path ?? call.args.filePath;
         if (typeof path === "string") paths.add(path);
       }
     }

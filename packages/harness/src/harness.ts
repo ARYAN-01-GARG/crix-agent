@@ -13,7 +13,7 @@ import {
 } from "./tools/index.js";
 import type { HarnessContext, ToolDefinition, ToolResult } from "./types.js";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: tool definitions use generic args
 const ALL_TOOLS: ToolDefinition<any>[] = [
   readFileTool,
   writeFileTool,
@@ -87,8 +87,22 @@ export class Harness {
    * Returns tool definitions in the shape Vercel AI SDK expects.
    * Each entry is { description, parameters (zod schema), execute }.
    */
-  getAiTools(): Record<string, { description: string; parameters: unknown; execute: (args: Record<string, unknown>) => Promise<{ content: string }> }> {
-    const result: Record<string, { description: string; parameters: unknown; execute: (args: Record<string, unknown>) => Promise<{ content: string }> }> = {};
+  getAiTools(): Record<
+    string,
+    {
+      description: string;
+      parameters: unknown;
+      execute: (args: Record<string, unknown>) => Promise<{ content: string }>;
+    }
+  > {
+    const result: Record<
+      string,
+      {
+        description: string;
+        parameters: unknown;
+        execute: (args: Record<string, unknown>) => Promise<{ content: string }>;
+      }
+    > = {};
 
     for (const tool of ALL_TOOLS) {
       result[tool.name] = {

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import type React from "react";
+import { useState, useCallback } from "react";
 import { Box, useApp, useInput } from "ink";
 import { resolveTheme } from "@crix/themes";
 import type { ThemeName } from "@crix/themes";
@@ -28,7 +29,14 @@ interface Props {
   resumed?: boolean;
 }
 
-export function App({ config, orchestrator, mode, sessionId, projectPath, resumed }: Props): React.ReactElement {
+export function App({
+  config,
+  orchestrator,
+  mode,
+  sessionId,
+  projectPath,
+  resumed,
+}: Props): React.ReactElement {
   const { exit } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -51,27 +59,27 @@ export function App({ config, orchestrator, mode, sessionId, projectPath, resume
 
   // Ctrl+D / Ctrl+C to exit
   useInput((_input, key) => {
-    if ((key.ctrl && (_input === "d" || _input === "c")) && !isProcessing) {
+    if (key.ctrl && (_input === "d" || _input === "c") && !isProcessing) {
       exit();
     }
   });
 
-  const slashCtx = {
-    setMode: (m: string) => {
-      const typed = m as "plan" | "work" | "review";
-      mode.set(typed);
-      setCurrentMode(typed);
-    },
-    setTheme: (t: string) => setThemeName(t),
-    getModel: () => config.model,
-    getMode: () => currentMode,
-    getTheme: () => themeName,
-    exit,
-    addMessage: (role: "system", content: string) => addMessage({ role, content }),
-  };
-
   const handleSubmit = useCallback(
     async (input: string) => {
+      const slashCtx = {
+        setMode: (m: string) => {
+          const typed = m as "plan" | "work" | "review";
+          mode.set(typed);
+          setCurrentMode(typed);
+        },
+        setTheme: (t: string) => setThemeName(t),
+        getModel: () => config.model,
+        getMode: () => currentMode,
+        getTheme: () => themeName,
+        exit,
+        addMessage: (role: "system", content: string) => addMessage({ role, content }),
+      };
+
       // Check slash command
       const parsed = parseSlash(input);
       if (parsed) {
@@ -79,7 +87,10 @@ export function App({ config, orchestrator, mode, sessionId, projectPath, resume
         if (cmd) {
           await cmd.execute(parsed.args, slashCtx);
         } else {
-          addMessage({ role: "system", content: `Unknown command: /${parsed.command}. Try /help.` });
+          addMessage({
+            role: "system",
+            content: `Unknown command: /${parsed.command}. Try /help.`,
+          });
         }
         return;
       }
@@ -100,17 +111,12 @@ export function App({ config, orchestrator, mode, sessionId, projectPath, resume
         setIsProcessing(false);
       }
     },
-    [orchestrator, sessionId, mode, addMessage, slashCtx]
+    [orchestrator, sessionId, mode, addMessage, config.model, currentMode, themeName, exit]
   );
 
   return (
     <Box flexDirection="column" height="100%">
-      <StatusBar
-        mode={currentMode}
-        model={config.model}
-        theme={theme}
-        projectPath={projectPath}
-      />
+      <StatusBar mode={currentMode} model={config.model} theme={theme} projectPath={projectPath} />
       <MessageList messages={messages} theme={theme} />
       <InputBar onSubmit={handleSubmit} isProcessing={isProcessing} theme={theme} />
     </Box>

@@ -38,7 +38,9 @@ const LANG_MAP: Record<string, string> = {
   ".go": "tree-sitter-go",
 };
 
-function loadParser(ext: string): { parser: { parse: (code: string) => { rootNode: SyntaxNode } } } | null {
+function loadParser(
+  ext: string
+): { parser: { parse: (code: string) => { rootNode: SyntaxNode } } } | null {
   const langModule = LANG_MAP[ext];
   if (!langModule) return null;
 
@@ -172,14 +174,7 @@ function visitNode(node: SyntaxNode, symbols: ParsedSymbol[], topLevelOnly = tru
       }
       return;
     }
-    // Go
-    case "function_declaration": {
-      const name = getSymbolName(node, "name");
-      if (name) {
-        symbols.push({ name, kind: "function", line: node.startPosition.row + 1 });
-      }
-      return;
-    }
+    // Go methods
     case "method_declaration": {
       const name = getSymbolName(node, "name");
       if (name) {

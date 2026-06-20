@@ -67,13 +67,13 @@ export class SessionStore {
       )
       .run(id, projectPath, mode, now, now, JSON.stringify(emptyHashes));
 
-    return this.get(id)!;
+    return this.get(id) as Session;
   }
 
   get(id: string): Session | null {
-    const row = this.db
-      .prepare("SELECT * FROM sessions WHERE id = ?")
-      .get(id) as SessionRow | undefined;
+    const row = this.db.prepare("SELECT * FROM sessions WHERE id = ?").get(id) as
+      | SessionRow
+      | undefined;
     return row ? toSession(row) : null;
   }
 
@@ -85,9 +85,7 @@ export class SessionStore {
   }
 
   touch(id: string): void {
-    this.db
-      .prepare("UPDATE sessions SET last_active_at = ? WHERE id = ?")
-      .run(Date.now(), id);
+    this.db.prepare("UPDATE sessions SET last_active_at = ? WHERE id = ?").run(Date.now(), id);
   }
 
   updateMode(id: string, mode: AgentMode): void {

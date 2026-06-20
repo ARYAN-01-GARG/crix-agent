@@ -1,9 +1,5 @@
 import { resolve } from "node:path";
-import { loadConfig, SessionStore, ModeStateMachine, getDbPath } from "@crix/core";
-import { createEventEmitter } from "@crix/events";
-import { Harness } from "@crix/harness";
-import { Orchestrator } from "@crix/orchestrator";
-import { ContextManager } from "@crix/context";
+import { SessionStore, getDbPath } from "@crix/core";
 import { start } from "../index.js";
 
 export interface SessionListOptions {
@@ -33,7 +29,10 @@ export async function cmdSessionList({ projectPath }: SessionListOptions): Promi
   process.stdout.write("\n");
 }
 
-export async function cmdSessionResume({ sessionId, projectPath }: SessionResumeOptions): Promise<void> {
+export async function cmdSessionResume({
+  sessionId,
+  projectPath,
+}: SessionResumeOptions): Promise<void> {
   const store = new SessionStore(getDbPath(projectPath));
   const session = store.get(sessionId);
   store.close();

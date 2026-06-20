@@ -29,7 +29,9 @@ export interface DeviceCode {
   verificationUriComplete?: string;
 }
 
-export async function requestDeviceCode(cfg: DeviceFlowConfig): Promise<{ deviceCode: string; display: DeviceCode; interval: number }> {
+export async function requestDeviceCode(
+  cfg: DeviceFlowConfig
+): Promise<{ deviceCode: string; display: DeviceCode; interval: number }> {
   const res = await fetch(cfg.deviceAuthUrl, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -60,9 +62,10 @@ export async function pollDeviceToken(
   intervalSeconds: number
 ): Promise<StoredToken> {
   const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+  let currentInterval = intervalSeconds;
 
   while (true) {
-    await delay(intervalSeconds * 1000);
+    await delay(currentInterval * 1000);
 
     const res = await fetch(cfg.tokenUrl, {
       method: "POST",
@@ -78,7 +81,7 @@ export async function pollDeviceToken(
 
     if (data.error === "authorization_pending") continue;
     if (data.error === "slow_down") {
-      intervalSeconds += 5;
+      currentInterval += 5;
       continue;
     }
     if (data.error) throw new Error(`Device token error: ${data.error}`);

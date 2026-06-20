@@ -16,7 +16,7 @@ export function parseSlash(input: string): ParsedSlash | null {
   if (!match) return null;
 
   return {
-    command: match[1]!.toLowerCase(),
+    command: (match[1] ?? "").toLowerCase(),
     args: (match[2] ?? "").trim(),
   };
 }

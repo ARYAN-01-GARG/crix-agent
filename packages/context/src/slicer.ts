@@ -14,7 +14,7 @@ function parseTreeSections(content: string): Map<string, string> {
     const match = /^##\s+(.+)$/.exec(line);
     if (match) {
       if (currentKey !== null) sections.set(currentKey, currentLines.join("\n"));
-      currentKey = match[1]!.trim();
+      currentKey = match[1]?.trim() ?? null;
       currentLines = [line];
     } else if (currentKey !== null) {
       currentLines.push(line);
@@ -30,7 +30,8 @@ function parseTreeSections(content: string): Map<string, string> {
  * Looks for paths containing `/` or ending in a known extension.
  */
 function extractMentionedPaths(prompt: string): string[] {
-  const pathPattern = /\b[\w./-]+\.(?:ts|tsx|js|jsx|py|go|rs|java|c|cpp|md|json|yaml|yml|css|scss|html)\b/g;
+  const pathPattern =
+    /\b[\w./-]+\.(?:ts|tsx|js|jsx|py|go|rs|java|c|cpp|md|json|yaml|yml|css|scss|html)\b/g;
   return [...new Set(prompt.match(pathPattern) ?? [])];
 }
 
@@ -38,11 +39,7 @@ function extractMentionedPaths(prompt: string): string[] {
  * Returns sections of tree-structure.md relevant to the given task prompt.
  * Falls back to returning the first `maxChars` of the full tree if no matches found.
  */
-export function sliceTreeForTask(
-  projectPath: string,
-  taskPrompt: string,
-  maxChars = 3000
-): string {
+export function sliceTreeForTask(projectPath: string, taskPrompt: string, maxChars = 3000): string {
   const fullTree = readTreeStructure(projectPath);
   const sections = parseTreeSections(fullTree);
 
@@ -62,7 +59,7 @@ export function sliceTreeForTask(
     let result = "";
     for (const body of sections.values()) {
       if (result.length + body.length > maxChars) break;
-      result += body + "\n";
+      result += `${body}\n`;
     }
     return result.trimEnd() || fullTree.slice(0, maxChars);
   }
@@ -71,7 +68,7 @@ export function sliceTreeForTask(
   let result = "";
   for (const section of matched) {
     if (result.length + section.length > maxChars) break;
-    result += section + "\n";
+    result += `${section}\n`;
   }
   return result.trimEnd();
 }
@@ -102,8 +99,7 @@ export function getTreeSectionsForFiles(
  */
 export function mergeSectionsIntoTree(
   projectPath: string,
-  updatedSections: Map<string, string>,
-  limits: { treeStructure: number }
+  updatedSections: Map<string, string>
 ): string {
   const fullTree = readTreeStructure(projectPath);
   const sections = parseTreeSections(fullTree);
@@ -112,20 +108,12 @@ export function mergeSectionsIntoTree(
     sections.set(key, body);
   }
 
-  // Re-render in insertion order, sorted by file path
   const sorted = [...sections.entries()].sort(([a], [b]) => a.localeCompare(b));
   const header = fullTree.split("\n").slice(0, 3).join("\n");
 
-  let result = header + "\n\n";
+  let result = `${header}\n\n`;
   for (const [, body] of sorted) {
-    result += body + "\n\n";
-  }
-
-  // Trim to limit
-  if (result.length > limits.treeStructure) {
-    result = result.slice(0, limits.treeStructure);
-    const lastNewline = result.lastIndexOf("\n");
-    result = result.slice(0, lastNewline) + "\n\n... (truncated to fit limit)\n";
+    result += `${body}\n\n`;
   }
 
   return result;

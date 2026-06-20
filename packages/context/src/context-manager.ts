@@ -83,8 +83,8 @@ export class ContextManager {
 
   /** Replaces tree sections for the given files (called by the indexer after re-parsing). */
   updateTreeSections(updatedSections: Map<string, string>): void {
-    const merged = mergeSectionsIntoTree(this.projectPath, updatedSections, this.limits);
-    writeTreeStructure(this.projectPath, merged, this.limits);
+    const merged = mergeSectionsIntoTree(this.projectPath, updatedSections);
+    writeTreeStructure(this.projectPath, merged);
   }
 
   /** Direct writes — used by `crix context edit` or explicit user updates. */
@@ -101,6 +101,6 @@ export class ContextManager {
   }
 
   updateTreeStructure(content: string): void {
-    writeTreeStructure(this.projectPath, content, this.limits);
+    writeTreeStructure(this.projectPath, content);
   }
 }

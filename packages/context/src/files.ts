@@ -89,6 +89,8 @@ export function readTreeStructure(projectPath: string): string {
   return read(getTreeStructurePath(projectPath), DEFAULT_TREE_STRUCTURE_MD);
 }
 
-export function writeTreeStructure(projectPath: string, content: string, limits: ContextLimits): void {
-  write(getTreeStructurePath(projectPath), truncateToLimit(content, limits.treeStructure));
+// No char limit on disk — tree-structure.md is the complete project index.
+// The slicer caps what gets sent to the LLM per task.
+export function writeTreeStructure(projectPath: string, content: string): void {
+  write(getTreeStructurePath(projectPath), content);
 }
