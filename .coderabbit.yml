@@ -1,0 +1,73 @@
+version: "2"
+
+# Only review PRs targeting develop (feature branches merge here first)
+reviews:
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - develop
+
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!**/dist/**"
+    - "!**/*.tsbuildinfo"
+    - "!**/.gitkeep"
+
+  path_instructions:
+    - path: "packages/harness/**"
+      instructions: |
+        This is the tool execution layer — the only path through which agents touch the filesystem or shell.
+        Focus on: permission enforcement correctness, hook ordering (pre → execute → post), command injection risks in run-shell, path traversal in file tools.
+        Flag any code that could let an agent bypass the permission table.
+
+    - path: "packages/agents/**"
+      instructions: |
+        Specialist agents extending BaseAgent. Check that:
+        - systemPrompt is focused on the declared role and does not overlap with other specialists
+        - buildUserPrompt / buildSystemPrompt do not leak cross-role context
+        - No agent performs git commit or push unless the user explicitly requested it (git discipline rule)
+        - Done block format (```done ... ```) is preserved in any prompt changes
+
+    - path: "packages/orchestrator/**"
+      instructions: |
+        Master orchestrator — flat dispatch only (orchestrator → specialists, no recursive delegation).
+        Verify: heuristic classifier runs before any LLM call, parallel dispatch only for medium/large tiers, result merger deduplicates filesChanged correctly.
+
+    - path: "packages/auth/**"
+      instructions: |
+        OAuth2 flow with PKCE. Security checklist:
+        - state parameter must be validated before accepting a callback code
+        - PKCE verifier must never be logged or included in error messages
+        - Token must be stored via keytar (OS keychain), never in plaintext files
+        - callback-server must close immediately after the first successful hit
+
+    - path: "packages/context/**"
+      instructions: |
+        Manages the 4 .crix/ project knowledge files. Flag any write that does not go through truncateToLimit — files have hard character caps (project.md 2500, tree-structure.md 8000, context.md 2500, code-practices.md 2500).
+
+    - path: "packages/indexer/**"
+      instructions: |
+        Hybrid AST+LLM indexer. Check that tree-sitter parsing errors are caught per-file and do not abort the full index run. LLM summarizer calls must be batched (one call per file, not per symbol). watcher must ignore node_modules, dist, .git, and .crix directories.
+
+    - path: "packages/cli/**"
+      instructions: |
+        Ink v4 TUI. React rules apply (no state mutations, proper key props). Check that slash commands validated against slashRegistry before executing. Ctrl+C / Ctrl+D exit path must not hang if orchestrator is mid-request.
+
+    - path: "packages/core/**"
+      instructions: |
+        Session storage uses node:sqlite DatabaseSync (Node 22.5+ built-in) — NOT better-sqlite3. Flag any import of better-sqlite3.
+        ModeStateMachine transitions must emit mode:changed events; verify no transition skips the emitter.
+
+  tools:
+    github-checks:
+      enabled: true
+    ast-grep:
+      enabled: true
+
+chat:
+  auto_reply: true
