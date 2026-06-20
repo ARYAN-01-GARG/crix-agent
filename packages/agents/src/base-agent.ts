@@ -74,7 +74,7 @@ export abstract class BaseAgent {
         taskId: task.id,
         role: this.role,
         success: true,
-        summary: text,
+        summary: this.extractSummary(text),
         filesChanged,
         durationMs,
       };
@@ -98,24 +98,62 @@ export abstract class BaseAgent {
   protected buildSystemPrompt(task: AgentTask): string {
     const parts = [this.systemPrompt];
 
+    // Static/cached sections first so Anthropic prompt caching applies
     if (task.contextSlice) {
       parts.push("\n\n# Project Context\n");
       parts.push(task.contextSlice);
     }
 
-    parts.push(`\n\n# Mode\nYou are operating in ${task.mode} mode.`);
+    parts.push(`
+# Operating Mode
+You are in **${task.mode}** mode.`);
 
     if (task.mode === "plan") {
-      parts.push("Do NOT write or modify any files. Only read and propose changes.");
+      parts.push(" Do NOT write or modify any files. Only read, analyse, and propose changes in plain text.");
     } else if (task.mode === "review") {
-      parts.push("Do NOT write or modify any files. You may run tests. Provide review feedback only.");
+      parts.push(" Do NOT write or modify any files. You may run shell commands to execute tests. Produce review feedback only.");
+    } else {
+      parts.push(" You have full read + write + shell access via your tools.");
     }
+
+    parts.push(`
+
+# Tool Workflow
+Always follow this order:
+1. **Read before writing** — use read_file or search_code to understand existing code before modifying it.
+2. **Search before proposing** — use search_code to confirm a symbol exists before referencing it.
+3. **Plan, then act** — if the task touches more than one file, briefly outline the changes you will make before calling any write tool.
+4. **Write, then verify** — after writing, read the file back to confirm the change is correct.
+5. **Summarise on completion** — your final response must follow the DONE FORMAT below.
+
+If a tool call fails:
+- Read the error message carefully.
+- Do not retry the exact same call — adjust arguments or try an alternative tool.
+- If you cannot recover, explain the blocker clearly in your final response.
+
+# Git Discipline
+Do NOT run git commit or git push unless the user's message explicitly asks you to commit or push.
+Creating and modifying files is fine; committing is the user's decision.
+
+# Done Format
+End every response with this exact block (even for plan/review modes):
+
+\`\`\`done
+summary: <one or two sentences describing what was done or proposed>
+files_changed: <comma-separated list of relative paths, or "none">
+next_steps: <what the user should do next, or "none">
+\`\`\``);
 
     return parts.join("");
   }
 
   protected buildUserPrompt(task: AgentTask): string {
     return task.prompt;
+  }
+
+  private extractSummary(text: string): string {
+    const match = /```done\s+summary:\s*(.+?)(?:\n|```)/s.exec(text);
+    return (match?.[1] ?? text).trim();
   }
 
   private extractFilesChanged(toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>): string[] {
