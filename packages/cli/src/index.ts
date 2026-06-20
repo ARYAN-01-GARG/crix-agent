@@ -14,6 +14,8 @@ import { App } from "./app.js";
 export interface StartOptions {
   projectPath?: string;
   debug?: boolean;
+  /** Resume an existing session instead of creating a new one. */
+  resumeSessionId?: string;
 }
 
 export async function start(opts: StartOptions = {}): Promise<void> {
@@ -21,15 +23,17 @@ export async function start(opts: StartOptions = {}): Promise<void> {
 
   const config = await loadConfig(projectPath);
 
-  // Ensure .crix/ files exist
   const context = new ContextManager(projectPath, config.contextLimits);
   context.init();
 
   const sessionStore = new SessionStore(getDbPath(projectPath));
-  const session = sessionStore.create(projectPath);
+
+  const session = opts.resumeSessionId
+    ? (sessionStore.get(opts.resumeSessionId) ?? sessionStore.create(projectPath))
+    : sessionStore.create(projectPath);
 
   const emitter = createEventEmitter("local");
-  const mode = new ModeStateMachine("work", emitter, session.id);
+  const mode = new ModeStateMachine(session.mode, emitter, session.id);
 
   const harness = new Harness({
     projectPath,
@@ -54,6 +58,7 @@ export async function start(opts: StartOptions = {}): Promise<void> {
       mode,
       sessionId: session.id,
       projectPath,
+      resumed: !!opts.resumeSessionId,
     }),
     { exitOnCtrlC: false }
   );

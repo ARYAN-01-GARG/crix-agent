@@ -1,5 +1,7 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import fg from "fast-glob";
+import ignore from "ignore";
 import { mergeSectionsIntoTree, writeTreeStructure } from "@crix/context";
 import type { ContextLimits } from "@crix/shared";
 import { parseFile } from "./parser.js";
@@ -15,17 +17,12 @@ const SOURCE_GLOBS = [
   "**/*.go",
 ];
 
-const IGNORE = [
+// Hard-coded safety net — always excluded regardless of .gitignore
+const ALWAYS_IGNORE = [
   "**/node_modules/**",
-  "**/dist/**",
   "**/.git/**",
   "**/.crix/**",
-  "**/coverage/**",
   "**/*.d.ts",
-  "**/*.test.ts",
-  "**/*.spec.ts",
-  "**/*.test.js",
-  "**/*.spec.js",
 ];
 
 export interface IndexerOptions {
@@ -38,40 +35,60 @@ export interface IndexerOptions {
 }
 
 /**
+ * Reads .gitignore (and .crixignore if present) from the project root and
+ * returns a filter function that returns true for paths that should be skipped.
+ */
+function buildIgnoreFilter(projectPath: string): (relativePath: string) => boolean {
+  const ig = ignore();
+
+  for (const name of [".gitignore", ".crixignore"]) {
+    const p = join(projectPath, name);
+    if (existsSync(p)) {
+      ig.add(readFileSync(p, "utf8"));
+    }
+  }
+
+  return (relativePath: string) => ig.ignores(relativePath);
+}
+
+/**
  * Full project scan — parses every source file, summarizes with LLM (batched),
  * and writes a fresh tree-structure.md.
  */
 export async function fullIndex(options: IndexerOptions): Promise<void> {
   const { projectPath, limits, apiKey, concurrency = 5, onProgress } = options;
 
-  const files = await fg(SOURCE_GLOBS, {
+  const shouldIgnore = buildIgnoreFilter(projectPath);
+
+  const allFiles = await fg(SOURCE_GLOBS, {
     cwd: projectPath,
-    ignore: IGNORE,
+    ignore: ALWAYS_IGNORE,
     absolute: true,
+  });
+
+  // Filter out anything .gitignore says to skip
+  const files = allFiles.filter((abs) => {
+    const rel = relative(projectPath, abs);
+    return !shouldIgnore(rel);
   });
 
   const total = files.length;
   let done = 0;
 
-  // Parse all files (sync, CPU bound — keep in main thread for now)
   const parsed = files.map((fp) => parseFile(fp));
 
-  // Prepare source snippets for the LLM (first 60 lines each)
   const inputs = parsed.map((p) => ({
     parsed: p,
     sourceSnippet: getSourceSnippet(p.filePath),
   }));
 
-  // Summarize in batches
   const summaries = await summarizeBatch(inputs, apiKey, concurrency);
-
   const summaryMap = new Map(summaries.map((s) => [s.filePath, s]));
 
   const renderInputs = parsed
     .filter((p) => p.symbols.length > 0)
     .map((p) => {
       const summary = summaryMap.get(p.filePath) ?? { filePath: p.filePath, symbols: [] };
-      // Make file paths relative
       const relativeParsed = { ...p, filePath: relative(projectPath, p.filePath) };
       const relativeSummary = { ...summary, filePath: relative(projectPath, summary.filePath) };
       return { parsed: relativeParsed, summary: relativeSummary };
@@ -94,7 +111,11 @@ export async function incrementalIndex(
 ): Promise<void> {
   const { projectPath, limits, apiKey, concurrency = 5 } = options;
 
-  const parsed = filePaths.map((fp) => parseFile(fp));
+  const shouldIgnore = buildIgnoreFilter(projectPath);
+
+  const files = filePaths.filter((abs) => !shouldIgnore(relative(projectPath, abs)));
+
+  const parsed = files.map((fp) => parseFile(fp));
   const inputs = parsed.map((p) => ({
     parsed: p,
     sourceSnippet: getSourceSnippet(p.filePath),
