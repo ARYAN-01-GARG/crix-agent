@@ -1,0 +1,32 @@
+{
+  "name": "@crix/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fastify REST and SSE server for crix remote mode",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crix/cache": "workspace:*",
+    "@crix/context": "workspace:*",
+    "@crix/core": "workspace:*",
+    "@crix/events": "workspace:*",
+    "@crix/harness": "workspace:*",
+    "@crix/orchestrator": "workspace:*",
+    "@crix/queue": "workspace:*",
+    "@crix/shared": "workspace:*",
+    "@fastify/cors": "^10.0.1",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "^5.7.3"
+  }
+}
