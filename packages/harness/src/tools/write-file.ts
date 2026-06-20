@@ -10,10 +10,7 @@ const parameters = z.object({
   content: z.string().describe("Full content to write to the file"),
 });
 
-const execute = async (
-  args: z.infer<typeof parameters>,
-  ctx: ToolContext
-): Promise<ToolResult> => {
+const execute = async (args: z.infer<typeof parameters>, ctx: ToolContext): Promise<ToolResult> => {
   if (!ctx.mode.canWrite()) {
     throw new HarnessPermissionError("write_file", `mode:${ctx.mode.get()}`);
   }
@@ -40,7 +37,8 @@ const execute = async (
 
 export const writeFileTool: ToolDefinition<typeof parameters> = {
   name: "write_file",
-  description: "Write or overwrite a file with the given content. Requires work mode.",
+  description:
+    "Write or overwrite a file with the given content. Both `path` and `content` are required — never call this without providing the full file content. Requires work mode.",
   parameters,
   execute,
 };

@@ -108,7 +108,16 @@ export class Harness {
       result[tool.name] = {
         description: tool.description,
         parameters: tool.parameters,
-        execute: (args) => this.execute(tool.name, args),
+        execute: async (args) => {
+          try {
+            return await this.execute(tool.name, args);
+          } catch (err) {
+            // Return errors as content so the agent can read and recover,
+            // rather than crashing the entire generateText call.
+            const message = err instanceof Error ? err.message : String(err);
+            return { content: `Error: ${message}` };
+          }
+        },
       };
     }
 
