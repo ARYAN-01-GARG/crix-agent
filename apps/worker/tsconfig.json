@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/cache" },
+    { "path": "../../packages/queue" },
+    { "path": "../../packages/events" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/context" },
+    { "path": "../../packages/harness" },
+    { "path": "../../packages/orchestrator" }
+  ],
+  "include": ["src"]
+}
