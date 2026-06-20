@@ -4,11 +4,11 @@ import { DEFAULT_BUDGET } from "@crix/context";
 import type { SessionStore } from "@crix/core";
 import type { IEventEmitter } from "@crix/events";
 import type { Harness } from "@crix/harness";
-import type { AgentResult, AgentTask, CrixConfig } from "@crix/shared";
-import { generateId, createLogger } from "@crix/shared";
-import { classifyTask } from "./router.js";
+import type { AgentResult, AgentTask, CrixConfig, HistoryMessage } from "@crix/shared";
+import { createLogger, generateId } from "@crix/shared";
 import { mergeResults } from "./result-merger.js";
 import type { MergedResult } from "./result-merger.js";
+import { classifyTask } from "./router.js";
 
 const logger = createLogger("orchestrator");
 
@@ -55,6 +55,15 @@ export class Orchestrator {
 
     log.info("task classified", { tier, roles: roles.join(",") });
 
+    // Load conversation history for context
+    const rawMessages = this.opts.sessionStore.getMessages(sessionId, 40);
+    const history: HistoryMessage[] = rawMessages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+    // Persist the incoming user message before dispatching
+    this.opts.sessionStore.addMessage(sessionId, "user", userMessage);
+
     const contextSlice = this.context.buildSlice(userMessage, DEFAULT_BUDGET);
 
     const tasks: AgentTask[] = roles.map((role) => ({
@@ -65,6 +74,7 @@ export class Orchestrator {
       prompt: userMessage,
       contextSlice,
       sessionId,
+      history,
       createdAt: new Date(),
     }));
 
@@ -98,6 +108,9 @@ export class Orchestrator {
       sessionId,
       timestamp: new Date(),
     });
+
+    // Persist assistant response into session history
+    this.opts.sessionStore.addMessage(sessionId, "assistant", merged.response);
 
     // Persist summary into context.md
     if (merged.allSucceeded && merged.summary) {

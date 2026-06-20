@@ -57,6 +57,7 @@ export async function start(opts: StartOptions = {}): Promise<void> {
       mode,
       sessionId: session.id,
       projectPath,
+      emitter,
       resumed: !!opts.resumeSessionId,
     }),
     { exitOnCtrlC: false }

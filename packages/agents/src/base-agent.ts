@@ -1,11 +1,11 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
-import type { LanguageModel } from "ai";
-import type { AgentResult, AgentRole, AgentTask, CrixConfig } from "@crix/shared";
-import { AgentError, createLogger } from "@crix/shared";
 import type { IEventEmitter } from "@crix/events";
 import type { Harness } from "@crix/harness";
+import type { AgentResult, AgentRole, AgentTask, CrixConfig } from "@crix/shared";
+import { AgentError, createLogger } from "@crix/shared";
+import { streamText } from "ai";
+import type { LanguageModel } from "ai";
 
 const logger = createLogger("agent");
 
@@ -49,15 +49,41 @@ export abstract class BaseAgent {
     try {
       const aiTools = this.harness.getAiTools();
 
-      const { text, toolCalls } = await generateText({
+      const result = streamText({
         model: this.getModel(),
         system: this.buildSystemPrompt(task),
-        prompt: this.buildUserPrompt(task),
-        tools: aiTools as Parameters<typeof generateText>[0]["tools"],
+        messages: [
+          ...task.history.map((h) => ({
+            role: h.role as "user" | "assistant",
+            content: h.content,
+          })),
+          { role: "user" as const, content: task.prompt },
+        ],
+        tools: aiTools as Parameters<typeof streamText>[0]["tools"],
         maxSteps: 20,
       });
 
-      const filesChanged = this.extractFilesChanged(toolCalls ?? []);
+      let text = "";
+      const streamedToolCalls: Array<{ toolName: string; args: Record<string, unknown> }> = [];
+
+      for await (const part of result.fullStream) {
+        if (part.type === "text-delta") {
+          text += part.textDelta;
+          this.emitter.emit({
+            type: "agent:text",
+            payload: { taskId: task.id, role: this.role, chunk: part.textDelta },
+            sessionId: task.sessionId,
+            timestamp: new Date(),
+          });
+        } else if (part.type === "tool-call") {
+          streamedToolCalls.push({
+            toolName: part.toolName,
+            args: part.args as Record<string, unknown>,
+          });
+        }
+      }
+
+      const filesChanged = this.extractFilesChanged(streamedToolCalls);
       const durationMs = Date.now() - start;
 
       this.emitter.emit({
