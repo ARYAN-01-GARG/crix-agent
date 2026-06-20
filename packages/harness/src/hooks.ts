@@ -6,12 +6,12 @@ export class HookRegistry {
 
   addPre(tool: string, fn: HookFn): void {
     if (!this.pre.has(tool)) this.pre.set(tool, []);
-    this.pre.get(tool)!.push(fn);
+    this.pre.get(tool)?.push(fn);
   }
 
   addPost(tool: string, fn: HookFn): void {
     if (!this.post.has(tool)) this.post.set(tool, []);
-    this.post.get(tool)!.push(fn);
+    this.post.get(tool)?.push(fn);
   }
 
   async runPre(tool: string, args: Record<string, unknown>): Promise<void> {

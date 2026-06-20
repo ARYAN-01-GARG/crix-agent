@@ -4,7 +4,7 @@ import { DEFAULT_BUDGET } from "@crix/context";
 import type { SessionStore } from "@crix/core";
 import type { IEventEmitter } from "@crix/events";
 import type { Harness } from "@crix/harness";
-import type { AgentTask, CrixConfig } from "@crix/shared";
+import type { AgentResult, AgentTask, CrixConfig } from "@crix/shared";
 import { generateId, createLogger } from "@crix/shared";
 import { classifyTask } from "./router.js";
 import { mergeResults } from "./result-merger.js";
@@ -76,13 +76,13 @@ export class Orchestrator {
     });
 
     const agents = roles.map((role) => this.registry.get(role));
-    const resultPromises = agents.map((agent, i) => agent.run(tasks[i]!));
+    const resultPromises = agents.map((agent, i) => agent.run(tasks[i] as AgentTask));
 
     // Run sequentially for "tiny" tasks to avoid unnecessary concurrency overhead
     // Run in parallel for all other tiers
     const results =
       tier === "tiny"
-        ? [await resultPromises[0]!]
+        ? [(await resultPromises[0]) as AgentResult]
         : await Promise.all(resultPromises);
 
     const merged = mergeResults(results);

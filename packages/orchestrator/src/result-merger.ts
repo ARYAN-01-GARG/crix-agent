@@ -18,22 +18,20 @@ export function mergeResults(results: AgentResult[]): MergedResult {
   const filesChanged = [...new Set(results.flatMap((r) => r.filesChanged))];
   const errors = results
     .filter((r) => !r.success && r.error)
-    .map((r) => ({ role: r.role, error: r.error! }));
+    .map((r) => ({ role: r.role, error: r.error ?? "unknown error" }));
   const durationMs = Math.max(...results.map((r) => r.durationMs));
 
   let summary: string;
 
   if (results.length === 1) {
-    summary = results[0]!.summary;
+    summary = results[0]?.summary ?? "";
   } else {
     const sections = results
       .filter((r) => r.success && r.summary)
       .map((r) => `**${r.role}**: ${r.summary.trim()}`);
 
     if (errors.length > 0) {
-      sections.push(
-        `**Errors**: ${errors.map((e) => `${e.role}: ${e.error}`).join("; ")}`
-      );
+      sections.push(`**Errors**: ${errors.map((e) => `${e.role}: ${e.error}`).join("; ")}`);
     }
 
     summary = sections.join("\n\n");

@@ -8,22 +8,10 @@ import { parseFile } from "./parser.js";
 import { summarizeBatch } from "./summarizer.js";
 import { renderFileSection, renderFullTree } from "./renderers/markdown.js";
 
-const SOURCE_GLOBS = [
-  "**/*.ts",
-  "**/*.tsx",
-  "**/*.js",
-  "**/*.jsx",
-  "**/*.py",
-  "**/*.go",
-];
+const SOURCE_GLOBS = ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.py", "**/*.go"];
 
 // Hard-coded safety net — always excluded regardless of .gitignore
-const ALWAYS_IGNORE = [
-  "**/node_modules/**",
-  "**/.git/**",
-  "**/.crix/**",
-  "**/*.d.ts",
-];
+const ALWAYS_IGNORE = ["**/node_modules/**", "**/.git/**", "**/.crix/**", "**/*.d.ts"];
 
 export interface IndexerOptions {
   projectPath: string;
@@ -56,7 +44,7 @@ function buildIgnoreFilter(projectPath: string): (relativePath: string) => boole
  * and writes a fresh tree-structure.md.
  */
 export async function fullIndex(options: IndexerOptions): Promise<void> {
-  const { projectPath, limits, apiKey, concurrency = 5, onProgress } = options;
+  const { projectPath, apiKey, concurrency = 5, onProgress } = options;
 
   const shouldIgnore = buildIgnoreFilter(projectPath);
 
@@ -73,7 +61,6 @@ export async function fullIndex(options: IndexerOptions): Promise<void> {
   });
 
   const total = files.length;
-  let done = 0;
 
   const parsed = files.map((fp) => parseFile(fp));
 
@@ -94,8 +81,7 @@ export async function fullIndex(options: IndexerOptions): Promise<void> {
       return { parsed: relativeParsed, summary: relativeSummary };
     });
 
-  done = total;
-  onProgress?.(done, total);
+  onProgress?.(total, total);
 
   const content = renderFullTree(renderInputs);
   writeTreeStructure(projectPath, content);
@@ -109,7 +95,7 @@ export async function incrementalIndex(
   filePaths: string[],
   options: IndexerOptions
 ): Promise<void> {
-  const { projectPath, limits, apiKey, concurrency = 5 } = options;
+  const { projectPath, apiKey, concurrency = 5 } = options;
 
   const shouldIgnore = buildIgnoreFilter(projectPath);
 
@@ -141,15 +127,12 @@ export async function incrementalIndex(
 
 function getSourceSnippet(filePath: string, lines = 60): string {
   try {
-    return readFileSync(filePath, "utf8")
-      .split("\n")
-      .slice(0, lines)
-      .join("\n");
+    return readFileSync(filePath, "utf8").split("\n").slice(0, lines).join("\n");
   } catch {
     return "";
   }
 }
 
 function relative(base: string, full: string): string {
-  return full.startsWith(base + "/") ? full.slice(base.length + 1) : full;
+  return full.startsWith(`${base}/`) ? full.slice(base.length + 1) : full;
 }

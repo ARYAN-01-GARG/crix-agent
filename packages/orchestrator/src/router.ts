@@ -1,7 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 import { z } from "zod";
-import type { AgentRole, CrixConfig, TaskTier } from "@crix/shared";
+import type { AgentRole, CrixConfig } from "@crix/shared";
 import { classifyHeuristic } from "./classifier.js";
 import type { ClassificationResult } from "./classifier.js";
 

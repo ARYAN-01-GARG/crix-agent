@@ -8,7 +8,6 @@ import { createEventEmitter } from "@crix/events";
 import { Harness } from "@crix/harness";
 import { Orchestrator } from "@crix/orchestrator";
 import { ContextManager } from "@crix/context";
-import { generateId } from "@crix/shared";
 import { App } from "./app.js";
 
 export interface StartOptions {

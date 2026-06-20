@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Theme } from "@crix/themes";
 
@@ -34,9 +35,7 @@ export function InputBar({ onSubmit, isProcessing, theme }: Props): React.ReactE
     }
   });
 
-  const placeholder = isProcessing
-    ? "Processing..."
-    : 'Type a message or /help for commands';
+  const placeholder = isProcessing ? "Processing..." : "Type a message or /help for commands";
 
   return (
     <Box
@@ -49,11 +48,7 @@ export function InputBar({ onSubmit, isProcessing, theme }: Props): React.ReactE
       <Text color={value ? theme.colors.text : theme.colors.textMuted} wrap="wrap">
         {value || placeholder}
       </Text>
-      {!isProcessing && (
-        <Text color={theme.colors.primary}>
-          {"█"}
-        </Text>
-      )}
+      {!isProcessing && <Text color={theme.colors.primary}>{"█"}</Text>}
     </Box>
   );
 }

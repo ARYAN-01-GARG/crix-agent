@@ -13,10 +13,7 @@ const parameters = z.object({
   maxResults: z.number().int().min(1).max(200).default(50).describe("Maximum number of matches"),
 });
 
-const execute = async (
-  args: z.infer<typeof parameters>,
-  ctx: ToolContext
-): Promise<ToolResult> => {
+const execute = async (args: z.infer<typeof parameters>, ctx: ToolContext): Promise<ToolResult> => {
   const files = await fg(args.pattern, {
     cwd: ctx.projectPath,
     ignore: ["**/node_modules/**", "**/dist/**", "**/.git/**"],
@@ -35,8 +32,9 @@ const execute = async (
       const lines = readFileSync(`${ctx.projectPath}/${file}`, "utf8").split("\n");
       for (let i = 0; i < lines.length; i++) {
         if (matches.length >= args.maxResults) break;
-        if (regex.test(lines[i]!)) {
-          matches.push(`${file}:${i + 1}: ${lines[i]!.trim()}`);
+        const line = lines[i];
+        if (line !== undefined && regex.test(line)) {
+          matches.push(`${file}:${i + 1}: ${line.trim()}`);
         }
       }
     } catch {
@@ -50,7 +48,8 @@ const execute = async (
 
   const truncated = matches.length >= args.maxResults;
   return {
-    content: matches.join("\n") + (truncated ? `\n\n... (showing first ${args.maxResults} matches)` : ""),
+    content:
+      matches.join("\n") + (truncated ? `\n\n... (showing first ${args.maxResults} matches)` : ""),
     truncated,
   };
 };

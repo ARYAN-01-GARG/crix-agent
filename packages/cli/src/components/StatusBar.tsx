@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { Box, Text } from "ink";
 import type { Theme } from "@crix/themes";
 
@@ -24,8 +24,8 @@ export function StatusBar({ mode, model, theme, projectPath }: Props): React.Rea
           mode === "plan"
             ? theme.colors.statusBar.modePlan
             : mode === "review"
-            ? theme.colors.statusBar.modeReview
-            : theme.colors.statusBar.modeWork
+              ? theme.colors.statusBar.modeReview
+              : theme.colors.statusBar.modeWork
         }
         bold
       >

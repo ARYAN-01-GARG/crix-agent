@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { Box, Text } from "ink";
 import type { Theme } from "@crix/themes";
 
@@ -26,7 +26,10 @@ function UserMessage({ content, theme }: { content: string; theme: Theme }): Rea
   );
 }
 
-function AssistantMessage({ content, theme }: { content: string; theme: Theme }): React.ReactElement {
+function AssistantMessage({
+  content,
+  theme,
+}: { content: string; theme: Theme }): React.ReactElement {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Text color={theme.colors.primary} bold>

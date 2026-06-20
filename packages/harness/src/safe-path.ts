@@ -19,7 +19,7 @@ export const trimOutput = (
 ): { content: string; truncated: boolean } => {
   if (content.length <= max) return { content, truncated: false };
   return {
-    content: content.slice(0, max) + `\n\n... [output truncated at ${max} chars]`,
+    content: `${content.slice(0, max)}\n\n... [output truncated at ${max} chars]`,
     truncated: true,
   };
 };

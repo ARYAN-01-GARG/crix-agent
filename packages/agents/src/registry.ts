@@ -9,7 +9,11 @@ import { ReviewerAgent } from "./reviewer.js";
 import { TesterAgent } from "./tester.js";
 import type { BaseAgent } from "./base-agent.js";
 
-type AgentConstructor = new (config: CrixConfig, harness: Harness, emitter: IEventEmitter) => BaseAgent;
+type AgentConstructor = new (
+  config: CrixConfig,
+  harness: Harness,
+  emitter: IEventEmitter
+) => BaseAgent;
 
 const AGENT_CTORS: Record<AgentRole, AgentConstructor> = {
   backend: BackendAgent,
@@ -34,7 +38,7 @@ export class AgentRegistry {
       const Ctor = AGENT_CTORS[role];
       this.cache.set(role, new Ctor(this.config, this.harness, this.emitter));
     }
-    return this.cache.get(role)!;
+    return this.cache.get(role) as BaseAgent;
   }
 
   getAll(roles: AgentRole[]): BaseAgent[] {

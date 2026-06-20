@@ -55,4 +55,4 @@ export class Logger {
 }
 
 export const createLogger = (prefix: string, level?: LogLevel): Logger =>
-  new Logger(prefix, level ?? (process.env["LOG_LEVEL"] as LogLevel | undefined) ?? "info");
+  new Logger(prefix, level ?? (process.env.LOG_LEVEL as LogLevel | undefined) ?? "info");
