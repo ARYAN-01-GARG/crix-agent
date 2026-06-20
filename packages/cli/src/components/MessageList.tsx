@@ -1,6 +1,6 @@
-import type React from "react";
-import { Box, Text } from "ink";
 import type { Theme } from "@crix/themes";
+import { Box, Text } from "ink";
+import type React from "react";
 
 export interface Message {
   id: string;
@@ -11,6 +11,7 @@ export interface Message {
 interface Props {
   messages: Message[];
   theme: Theme;
+  streamingContent?: string;
 }
 
 function UserMessage({ content, theme }: { content: string; theme: Theme }): React.ReactElement {
@@ -54,7 +55,7 @@ function SystemMessage({ content, theme }: { content: string; theme: Theme }): R
   );
 }
 
-export function MessageList({ messages, theme }: Props): React.ReactElement {
+export function MessageList({ messages, theme, streamingContent }: Props): React.ReactElement {
   return (
     <Box flexDirection="column" flexGrow={1} overflowY="hidden">
       {messages.map((msg) => {
@@ -67,6 +68,7 @@ export function MessageList({ messages, theme }: Props): React.ReactElement {
             return <SystemMessage key={msg.id} content={msg.content} theme={theme} />;
         }
       })}
+      {streamingContent && <AssistantMessage content={`${streamingContent}▋`} theme={theme} />}
     </Box>
   );
 }

@@ -4,6 +4,11 @@ export type TaskTier = "tiny" | "small" | "medium" | "large";
 
 export type AgentMode = "plan" | "work" | "review";
 
+export interface HistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface AgentTask {
   id: string;
   role: AgentRole;
@@ -12,6 +17,7 @@ export interface AgentTask {
   prompt: string;
   contextSlice: string;
   sessionId: string;
+  history: HistoryMessage[];
   createdAt: Date;
 }
 
