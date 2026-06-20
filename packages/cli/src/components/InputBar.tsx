@@ -1,16 +1,26 @@
-import type React from "react";
-import { useState } from "react";
-import { Box, Text, useInput } from "ink";
 import type { Theme } from "@crix/themes";
+import { Box, Text, useInput } from "ink";
+import type React from "react";
+import { useEffect, useState } from "react";
+
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
 interface Props {
   onSubmit: (value: string) => void;
   isProcessing: boolean;
   theme: Theme;
+  activity?: string;
 }
 
-export function InputBar({ onSubmit, isProcessing, theme }: Props): React.ReactElement {
+export function InputBar({ onSubmit, isProcessing, theme, activity }: Props): React.ReactElement {
   const [value, setValue] = useState("");
+  const [spinnerFrame, setSpinnerFrame] = useState(0);
+
+  useEffect(() => {
+    if (!isProcessing) return;
+    const t = setInterval(() => setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length), 80);
+    return () => clearInterval(t);
+  }, [isProcessing]);
 
   useInput((input, key) => {
     if (isProcessing) return;
@@ -28,14 +38,15 @@ export function InputBar({ onSubmit, isProcessing, theme }: Props): React.ReactE
       return;
     }
 
-    if (key.ctrl && input === "c") return; // handled by Ink globally
+    if (key.ctrl && input === "c") return;
 
     if (!key.ctrl && !key.meta && input) {
       setValue((prev) => prev + input);
     }
   });
 
-  const placeholder = isProcessing ? "Processing..." : "Type a message or /help for commands";
+  const spinner = SPINNER_FRAMES[spinnerFrame] ?? "⠋";
+  const activityText = activity || "Working...";
 
   return (
     <Box
@@ -44,11 +55,26 @@ export function InputBar({ onSubmit, isProcessing, theme }: Props): React.ReactE
       paddingX={1}
       marginTop={1}
     >
-      <Text color={theme.colors.primary}>&gt; </Text>
-      <Text color={value ? theme.colors.text : theme.colors.textMuted} wrap="wrap">
-        {value || placeholder}
-      </Text>
-      {!isProcessing && <Text color={theme.colors.primary}>{"█"}</Text>}
+      {isProcessing ? (
+        <>
+          <Text color={theme.colors.warning}>{spinner} </Text>
+          <Text color={theme.colors.textMuted}>{activityText}</Text>
+        </>
+      ) : (
+        <>
+          <Text color={theme.colors.primary}>&gt; </Text>
+          <Text color={theme.colors.primary}>{"█"}</Text>
+          {value ? (
+            <Text color={theme.colors.text} wrap="wrap">
+              {value}
+            </Text>
+          ) : (
+            <Text color={theme.colors.textMuted} dimColor>
+              {"  Type a prompt or /help for commands"}
+            </Text>
+          )}
+        </>
+      )}
     </Box>
   );
 }

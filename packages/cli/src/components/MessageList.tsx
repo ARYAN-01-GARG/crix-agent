@@ -14,6 +14,32 @@ interface Props {
   streamingContent?: string;
 }
 
+/** Strip markdown syntax markers so raw `**bold**`, `## Heading` etc. don't appear in terminal. */
+function stripMarkdown(text: string): string {
+  return (
+    text
+      // fenced code blocks — keep content, drop backtick fences
+      .replace(/```[\w]*\n([\s\S]*?)```/g, (_, code: string) => code.trim())
+      // bold + italic combinations
+      .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+      // bold
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      // italic
+      .replace(/\*(.+?)\*/g, "$1")
+      // ATX headings (## Heading)
+      .replace(/^#{1,6}\s+/gm, "")
+      // inline code — keep content
+      .replace(/`(.+?)`/g, "$1")
+      // horizontal rules
+      .replace(/^[-*_]{3,}\s*$/gm, "─".repeat(40))
+      // blockquotes
+      .replace(/^>\s*/gm, "  ")
+      // unordered list markers
+      .replace(/^[-*+]\s+/gm, "• ")
+      .trim()
+  );
+}
+
 function UserMessage({ content, theme }: { content: string; theme: Theme }): React.ReactElement {
   return (
     <Box flexDirection="column" marginBottom={1}>
@@ -38,7 +64,7 @@ function AssistantMessage({
       </Text>
       <Box borderStyle="round" borderColor={theme.colors.agentMessage} paddingX={1}>
         <Text color={theme.colors.text} wrap="wrap">
-          {content}
+          {stripMarkdown(content)}
         </Text>
       </Box>
     </Box>

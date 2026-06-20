@@ -1,13 +1,13 @@
-import { render } from "ink";
-import React from "react";
 import { resolve } from "node:path";
+import { ContextManager } from "@crix/context";
 import { loadConfig } from "@crix/core";
-import { SessionStore, ModeStateMachine } from "@crix/core";
+import { ModeStateMachine, SessionStore } from "@crix/core";
 import { getDbPath } from "@crix/core";
 import { createEventEmitter } from "@crix/events";
 import { Harness } from "@crix/harness";
 import { Orchestrator } from "@crix/orchestrator";
-import { ContextManager } from "@crix/context";
+import { render } from "ink";
+import React from "react";
 import { App } from "./app.js";
 
 export interface StartOptions {
@@ -19,6 +19,12 @@ export interface StartOptions {
 
 export async function start(opts: StartOptions = {}): Promise<void> {
   const projectPath = resolve(opts.projectPath ?? process.cwd());
+
+  // Suppress info/debug/warn logs so they don't leak into Ink's stdout renderer.
+  // Pass --debug to see all logs (they still go to stderr/stdout but only when debugging).
+  if (!opts.debug) {
+    process.env.LOG_LEVEL = "error";
+  }
 
   const config = await loadConfig(projectPath);
 

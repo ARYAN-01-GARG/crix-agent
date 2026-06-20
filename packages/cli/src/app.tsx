@@ -22,6 +22,28 @@ import "./slash/commands/theme.js";
 import "./slash/commands/model.js";
 import "./slash/commands/exit.js";
 
+const TOOL_LABELS: Record<string, string> = {
+  read_file: "Reading",
+  write_file: "Writing",
+  create_file: "Creating",
+  delete_file: "Deleting",
+  list_files: "Listing",
+  run_shell: "Running",
+  git_ops: "Git",
+  search_code: "Searching",
+};
+
+function toolActivity(toolName: string, args: Record<string, unknown>): string {
+  const label = TOOL_LABELS[toolName] ?? toolName;
+  const target =
+    (args.path as string | undefined) ??
+    (args.filePath as string | undefined) ??
+    (args.command as string | undefined) ??
+    (args.query as string | undefined) ??
+    "";
+  return target ? `${label}: ${target}` : `${label}...`;
+}
+
 interface Props {
   config: CrixConfig;
   orchestrator: Orchestrator;
@@ -56,6 +78,7 @@ export function App({
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const [activity, setActivity] = useState("");
   const [themeName, setThemeName] = useState<string>("default");
   const [currentMode, setCurrentMode] = useState<"plan" | "work" | "review">(mode.get());
 
@@ -65,17 +88,27 @@ export function App({
     setMessages((prev) => [...prev, { ...msg, id: generateId("msg") }]);
   }, []);
 
-  // Listen for streaming text chunks from agents
+  // Stream text chunks from agent
   useEffect(() => {
     const handler = (event: import("@crix/events").CrixEvent<"agent:text">) => {
       if (event.sessionId === sessionId) {
         setStreamingContent((prev) => prev + event.payload.chunk);
+        setActivity("Generating...");
       }
     };
     emitter.on("agent:text", handler);
-    return () => {
-      emitter.off("agent:text", handler);
+    return () => emitter.off("agent:text", handler);
+  }, [emitter, sessionId]);
+
+  // Show tool activity during generation
+  useEffect(() => {
+    const handler = (event: import("@crix/events").CrixEvent<"tool:call">) => {
+      if (event.sessionId === sessionId) {
+        setActivity(toolActivity(event.payload.tool, event.payload.args));
+      }
     };
+    emitter.on("tool:call", handler);
+    return () => emitter.off("tool:call", handler);
   }, [emitter, sessionId]);
 
   // Ctrl+D / Ctrl+C to exit
@@ -101,7 +134,6 @@ export function App({
         addMessage: (role: "system", content: string) => addMessage({ role, content }),
       };
 
-      // Check slash command
       const parsed = parseSlash(input);
       if (parsed) {
         const cmd = slashRegistry.get(parsed.command);
@@ -116,21 +148,21 @@ export function App({
         return;
       }
 
-      // Transition from welcome to chat on first real prompt
-      if (screen === "welcome") {
-        setScreen("chat");
-      }
+      if (screen === "welcome") setScreen("chat");
 
       addMessage({ role: "user", content: input });
       setIsProcessing(true);
       setStreamingContent("");
+      setActivity("Thinking...");
 
       try {
         const result = await orchestrator.process(input, sessionId, mode);
         setStreamingContent("");
+        setActivity("");
         addMessage({ role: "assistant", content: result.response });
       } catch (err) {
         setStreamingContent("");
+        setActivity("");
         addMessage({
           role: "system",
           content: `Error: ${err instanceof Error ? err.message : String(err)}`,
@@ -150,7 +182,12 @@ export function App({
     <Box flexDirection="column" height="100%">
       <StatusBar mode={currentMode} model={config.model} theme={theme} projectPath={projectPath} />
       <MessageList messages={messages} theme={theme} streamingContent={streamingContent} />
-      <InputBar onSubmit={handleSubmit} isProcessing={isProcessing} theme={theme} />
+      <InputBar
+        onSubmit={handleSubmit}
+        isProcessing={isProcessing}
+        theme={theme}
+        activity={activity}
+      />
     </Box>
   );
 }
