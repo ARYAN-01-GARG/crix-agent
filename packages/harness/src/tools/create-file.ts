@@ -10,10 +10,7 @@ const parameters = z.object({
   content: z.string().default("").describe("Initial content (defaults to empty)"),
 });
 
-const execute = async (
-  args: z.infer<typeof parameters>,
-  ctx: ToolContext
-): Promise<ToolResult> => {
+const execute = async (args: z.infer<typeof parameters>, ctx: ToolContext): Promise<ToolResult> => {
   if (!ctx.mode.canWrite()) {
     throw new HarnessPermissionError("create_file", `mode:${ctx.mode.get()}`);
   }
@@ -33,7 +30,8 @@ const execute = async (
 
 export const createFileTool: ToolDefinition<typeof parameters> = {
   name: "create_file",
-  description: "Create a new file. Fails if the file already exists. Requires work mode.",
+  description:
+    "Create a new file that does not yet exist. Use write_file to overwrite an existing file. Provide `content` with the full file content. Requires work mode.",
   parameters,
   execute,
 };
