@@ -85,6 +85,9 @@ importers:
       '@crix/harness':
         specifier: workspace:*
         version: link:../harness
+      '@crix/indexer':
+        specifier: workspace:*
+        version: link:../indexer
       '@crix/orchestrator':
         specifier: workspace:*
         version: link:../orchestrator
@@ -213,6 +216,9 @@ importers:
       fast-glob:
         specifier: ^3.3.0
         version: 3.3.3
+      ignore:
+        specifier: ^7.0.5
+        version: 7.0.5
       tree-sitter:
         specifier: ^0.21.0
         version: 0.21.1
@@ -669,6 +675,10 @@ packages:
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
+
+  ignore@7.0.5:
+    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
+    engines: {node: '>= 4'}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -1463,6 +1473,8 @@ snapshots:
   human-signals@8.0.1: {}
 
   ieee754@1.2.1: {}
+
+  ignore@7.0.5: {}
 
   import-fresh@3.3.1:
     dependencies:
