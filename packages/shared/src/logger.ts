@@ -1,4 +1,4 @@
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
 
 export interface LogEntry {
   level: LogLevel;
@@ -12,6 +12,7 @@ const LEVELS: Record<LogLevel, number> = {
   info: 1,
   warn: 2,
   error: 3,
+  silent: 99,
 };
 
 export class Logger {
@@ -24,7 +25,9 @@ export class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return LEVELS[level] >= LEVELS[this.minLevel];
+    // Re-read env on every call so setting LOG_LEVEL after module load works
+    const effective = (process.env.LOG_LEVEL as LogLevel | undefined) ?? this.minLevel;
+    return LEVELS[level] >= LEVELS[effective];
   }
 
   private format(level: LogLevel, message: string, context?: Record<string, unknown>): string {

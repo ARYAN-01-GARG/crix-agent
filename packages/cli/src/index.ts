@@ -20,11 +20,26 @@ export interface StartOptions {
 export async function start(opts: StartOptions = {}): Promise<void> {
   const projectPath = resolve(opts.projectPath ?? process.cwd());
 
-  // Suppress info/debug/warn logs so they don't leak into Ink's stdout renderer.
-  // Pass --debug to see all logs (they still go to stderr/stdout but only when debugging).
+  // Silence all logging in TUI mode — logs corrupt Ink's stdout renderer.
   if (!opts.debug) {
-    process.env.LOG_LEVEL = "error";
+    process.env.LOG_LEVEL = "silent";
   }
+
+  // Enter alternate screen buffer so crix owns a clean full screen
+  // and the user's shell history is restored on exit.
+  const useAltScreen = process.stdout.isTTY && !opts.debug;
+  if (useAltScreen) {
+    process.stdout.write("\x1b[?1049h"); // enter alternate screen
+    process.stdout.write("\x1b[H"); // move cursor to top-left
+  }
+  const restoreScreen = () => {
+    if (useAltScreen) process.stdout.write("\x1b[?1049l");
+  };
+  process.on("exit", restoreScreen);
+  process.on("SIGTERM", () => {
+    restoreScreen();
+    process.exit(0);
+  });
 
   const config = await loadConfig(projectPath);
 
@@ -71,4 +86,5 @@ export async function start(opts: StartOptions = {}): Promise<void> {
 
   await waitUntilExit();
   sessionStore.close();
+  restoreScreen();
 }

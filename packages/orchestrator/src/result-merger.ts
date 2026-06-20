@@ -5,6 +5,8 @@ export interface MergedResult {
   response: string;
   /** One-line summary for context.md */
   summary: string;
+  /** next_steps from done block — used as input placeholder */
+  nextSteps: string;
   filesChanged: string[];
   allSucceeded: boolean;
   errors: Array<{ role: string; error: string }>;
@@ -26,6 +28,8 @@ export function mergeResults(results: AgentResult[]): MergedResult {
 
   let response: string;
   let summary: string;
+
+  const nextSteps = results.find((r) => r.nextSteps)?.nextSteps ?? "";
 
   if (results.length === 1) {
     response = results[0]?.response ?? "";
@@ -49,5 +53,5 @@ export function mergeResults(results: AgentResult[]): MergedResult {
     summary = summarySections.join("; ");
   }
 
-  return { response, summary, filesChanged, allSucceeded, errors, durationMs };
+  return { response, summary, nextSteps, filesChanged, allSucceeded, errors, durationMs };
 }

@@ -101,6 +101,7 @@ export abstract class BaseAgent {
         success: true,
         response: this.stripDoneBlock(text),
         summary: this.extractSummary(text),
+        nextSteps: this.extractNextSteps(text),
         filesChanged,
         durationMs,
       };
@@ -148,13 +149,17 @@ You are in **${task.mode}** mode.`);
 
     parts.push(`
 
+# Response Style
+Do NOT write planning commentary ("Let me...", "I'll now...", "First I need to...", "I will...").
+Go directly to tool calls, then write the final answer after all tools are done.
+The final answer should be concise — state what was done and any key findings. No filler.
+
 # Tool Workflow
 Always follow this order:
 1. **Read before writing** — use read_file or search_code to understand existing code before modifying it.
 2. **Search before proposing** — use search_code to confirm a symbol exists before referencing it.
-3. **Plan, then act** — if the task touches more than one file, briefly outline the changes you will make before calling any write tool.
-4. **Write, then verify** — after writing, read the file back to confirm the change is correct.
-5. **Summarise on completion** — your final response must follow the DONE FORMAT below.
+3. **Write, then verify** — after writing, read the file back to confirm the change is correct.
+4. **Summarise on completion** — your final response must follow the DONE FORMAT below.
 
 If a tool call fails:
 - Read the error message carefully.
@@ -182,8 +187,14 @@ next_steps: <what the user should do next, or "none">
   }
 
   private extractSummary(text: string): string {
-    const match = /```done\s+summary:\s*(.+?)(?:\n|```)/s.exec(text);
+    const match = /```done[\s\S]*?summary:\s*(.+?)(?:\n|```)/s.exec(text);
     return (match?.[1] ?? text).trim();
+  }
+
+  private extractNextSteps(text: string): string {
+    const match = /```done[\s\S]*?next_steps:\s*(.+?)(?:\n|```)/s.exec(text);
+    const val = (match?.[1] ?? "").trim();
+    return val === "none" ? "" : val;
   }
 
   private stripDoneBlock(text: string): string {

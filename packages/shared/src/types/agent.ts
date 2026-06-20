@@ -36,6 +36,8 @@ export interface AgentResult {
   response: string;
   /** One-line summary extracted from done block — used for context.md */
   summary: string;
+  /** next_steps field from done block — shown as input placeholder */
+  nextSteps: string;
   filesChanged: string[];
   error?: string;
   durationMs: number;

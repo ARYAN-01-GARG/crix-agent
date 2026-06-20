@@ -6,14 +6,23 @@ import { InputBar } from "./InputBar.js";
 interface Props {
   theme: Theme;
   onSubmit: (value: string) => void;
+  mode: string;
+  model: string;
 }
 
-export function WelcomeScreen({ theme, onSubmit }: Props): React.ReactElement {
+export function WelcomeScreen({ theme, onSubmit, mode, model }: Props): React.ReactElement {
   const { stdout } = useStdout();
   const rows = stdout?.rows ?? 24;
 
   return (
-    <Box flexDirection="column" height={rows} justifyContent="center" alignItems="center">
+    <Box
+      flexDirection="column"
+      width="100%"
+      height={rows}
+      justifyContent="center"
+      alignItems="center"
+    >
+      {/* ── Logo block ── */}
       <Box flexDirection="column" alignItems="center">
         <Text color={theme.colors.primary} bold>
           {"  ██████╗██████╗ ██╗██╗  ██╗  "}
@@ -38,12 +47,29 @@ export function WelcomeScreen({ theme, onSubmit }: Props): React.ReactElement {
         </Box>
         <Box marginTop={1}>
           <Text color={theme.colors.info} dimColor>
-            your enterprise-grade AI coding agent
+            context-aware coding AI, built for your codebase from day one
           </Text>
         </Box>
       </Box>
-      <Box marginTop={3} width={60}>
-        <InputBar onSubmit={onSubmit} isProcessing={false} theme={theme} />
+
+      {/* ── Input card — boxed so it stands out ── */}
+      <Box
+        marginTop={4}
+        width={64}
+        borderStyle="single"
+        borderColor={theme.colors.border}
+        borderLeftColor={theme.colors.primary}
+        paddingX={1}
+        paddingY={1}
+      >
+        <InputBar
+          onSubmit={onSubmit}
+          isProcessing={false}
+          theme={theme}
+          variant="welcome"
+          mode={mode}
+          model={model}
+        />
       </Box>
     </Box>
   );
