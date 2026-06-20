@@ -1,4 +1,4 @@
-import type { Job } from "bullmq";
+import type { Job } from "@crix/queue";
 import { createRedisClient } from "@crix/cache";
 import { ModeStateMachine, SessionStore, getDbPath, loadConfig } from "@crix/core";
 import { createEventEmitter } from "@crix/events";
