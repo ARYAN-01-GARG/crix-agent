@@ -2,7 +2,7 @@
   "name": "@crix/events",
   "version": "0.1.0",
   "private": true,
-  "description": "Event emitter abstraction for crix — Node EventEmitter locally, Redis Streams in server mode",
+  "description": "Event emitter abstraction for crix — Node EventEmitter locally, Redis Pub/Sub in server mode",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@crix/cache": "workspace:*",
     "@crix/shared": "workspace:*"
   },
   "devDependencies": {
