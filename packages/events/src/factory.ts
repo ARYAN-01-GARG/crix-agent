@@ -1,20 +1,27 @@
+import { createRedisClient, createRedisSubscriber } from "@crix/cache";
 import type { IEventEmitter } from "./emitter.js";
 import { LocalEventEmitter } from "./local-emitter.js";
+import { RedisEventEmitter } from "./redis-emitter.js";
 
 export type EmitterMode = "local" | "redis";
 
-/**
- * Returns the appropriate emitter for the current environment.
- * - "local"  → Node.js EventEmitter (default, no external deps)
- * - "redis"  → Redis Streams (Phase 5, server mode — not yet implemented)
- */
-export const createEventEmitter = (mode: EmitterMode = "local"): IEventEmitter => {
-  if (mode === "redis") {
-    // TODO(phase-5): import and return RedisStreamEmitter
-    throw new Error(
-      'Redis Streams emitter is not yet implemented. Use mode "local" for now.'
-    );
-  }
+export interface RedisEmitterOptions {
+  redisUrl?: string;
+  sessionId: string;
+}
 
+export function createEventEmitter(mode?: "local"): IEventEmitter;
+export function createEventEmitter(mode: "redis", options: RedisEmitterOptions): IEventEmitter;
+export function createEventEmitter(
+  mode: EmitterMode = "local",
+  options?: RedisEmitterOptions
+): IEventEmitter {
+  if (mode === "redis") {
+    if (!options) throw new Error("redis mode requires options with sessionId");
+    const url = options.redisUrl ?? "redis://localhost:6379";
+    const pub = createRedisClient(url);
+    const sub = createRedisSubscriber(url);
+    return new RedisEventEmitter(options.sessionId, pub, sub);
+  }
   return new LocalEventEmitter();
-};
+}
