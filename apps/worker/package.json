@@ -21,7 +21,8 @@
     "@crix/orchestrator": "workspace:*",
     "@crix/queue": "workspace:*",
     "@crix/shared": "workspace:*",
-    "ioredis": "^5.3.2"
+    "ioredis": "^5.3.2",
+    "bullmq": "^5.22.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

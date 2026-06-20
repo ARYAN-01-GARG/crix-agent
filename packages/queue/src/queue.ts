@@ -1,11 +1,13 @@
 import { Queue, Worker } from "bullmq";
-import type Redis from "ioredis";
+import type { ConnectionOptions, Job } from "bullmq";
+import type { Redis } from "ioredis";
 import { QUEUE_NAMES } from "./names.js";
 import type { AgentJobPayload, AgentJobResult } from "./jobs.js";
-import type { Job } from "bullmq";
 
 export function createAgentQueue(connection: Redis): Queue<AgentJobPayload, AgentJobResult> {
-  return new Queue(QUEUE_NAMES.AGENT, { connection });
+  return new Queue(QUEUE_NAMES.AGENT, {
+    connection: connection as unknown as ConnectionOptions,
+  });
 }
 
 export function createAgentWorker(
@@ -13,7 +15,7 @@ export function createAgentWorker(
   processor: (job: Job<AgentJobPayload, AgentJobResult>) => Promise<AgentJobResult>
 ): Worker<AgentJobPayload, AgentJobResult> {
   return new Worker(QUEUE_NAMES.AGENT, processor, {
-    connection,
+    connection: connection as unknown as ConnectionOptions,
     concurrency: 5,
   });
 }

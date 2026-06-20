@@ -1,4 +1,4 @@
-import type Redis from "ioredis";
+import type { RedisClient } from "@crix/cache";
 import type { IEventEmitter } from "./emitter.js";
 import type { CrixEvent, CrixEventHandler, CrixEventType } from "./types.js";
 
@@ -7,12 +7,12 @@ export class RedisEventEmitter implements IEventEmitter {
 
   constructor(
     private readonly sessionId: string,
-    private readonly pub: Redis,
-    private readonly sub: Redis
+    private readonly pub: RedisClient,
+    private readonly sub: RedisClient
   ) {
-    sub.subscribe(`crix:session:${sessionId}`, (err) => {
-      if (err) console.error("[RedisEventEmitter] subscribe error:", err);
-    });
+    void sub
+      .subscribe(`crix:session:${sessionId}`)
+      .catch((err: unknown) => console.error("[RedisEventEmitter] subscribe error:", err));
 
     sub.on("message", (_channel: string, raw: string) => {
       try {
